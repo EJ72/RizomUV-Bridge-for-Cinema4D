@@ -21,7 +21,7 @@ ZomIslandGroups({Mode="DistributeInTilesByBBox", MergingPolicy=8322})
 ZomIslandGroups({Mode="DistributeInTilesEvenly", MergingPolicy=8322, UseTileLocks=true, UseIslandLocks=true})
 ZomPack({ProcessTileSelection=false, RecursionDepth=1, RootGroup="RootGroup", Scaling={Mode=2}, Rotate={}, Translate=true, LayoutScalingMode=2})'''
 
-edge_selection = '''for i, edge in ipairs(edges) do
+edge_selection = '''for i, edge in pairs(edges) do
     ZomSelect({PrimType="Edge", Select=true, IDs={ edge}, List=true})
 end'''
 
@@ -127,7 +127,7 @@ class Exporter:
         else:
             self.settings_save()
             self.demo_scripts()
-            print 'Loading Default Settings'
+            print ('Loading Default Settings')
 
     def settings_save(self):
         try:
@@ -178,7 +178,7 @@ class Exporter:
             return split_name
 
     def script_formation(self, selection, script):
-        path = self.object_path.decode().replace('\\', '/')
+        path = self.object_path.replace('\\', '/')
 
         load_string = 'ZomLoad({File={Path="' + path + '", ImportGroups=true, XYZUVW=true, UVWProps=' \
                       + str(self.ui['CHK_NEW_UV'][1]) + '}, NormalizeUVW=true})'
@@ -188,7 +188,7 @@ class Exporter:
             save_string = 'ZomSave({File={Path="' + path + '", UVWProps=true}, __UpdateUIObjFileName=true})'
 
         code = '{}\n{}\n{}\n{}'.format(load_string, selection, script, save_string)
-        self.script_save('_bak', code, dialog=False)
+        self.script_save('temp.lua', code, dialog=False)
 
 
 class Starter(Exporter):
@@ -250,8 +250,8 @@ class Starter(Exporter):
 
         # [ RUN COMMAND LINE ] - - - - - - - - - - - - - - - - - - - [/]
         if cmd:
-            temp_script = os.path.join(self.scripts_folder, '_bak')
-            param = [self.ui['TXT_U3D_PATH'][1], '-cfi', temp_script]
+            temp_script = os.path.join(self.scripts_folder, 'temp.lua')
+            param = [self.ui['TXT_U3D_PATH'][1], "-cfi", temp_script]
         else:
             param = [self.ui['TXT_U3D_PATH'][1], self.object_path]
 
@@ -261,7 +261,7 @@ class Starter(Exporter):
             self.p = subprocess.Popen(param)
         except OSError:
             c4d.gui.MessageDialog('RizomUV not found! Please configure path to rizomuv.exe in Option window first!')
-            print "RizomUV not found!"
+            print ("RizomUV not found!")
             return
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -285,35 +285,44 @@ class WatchThread(Thread):
         self.UI = UI
 
     def run(self):
+        doc = c4d.documents.GetActiveDocument()
+        selected = doc.GetActiveObjects(0)
+        printed = 0
 
         dirt_flag = False
 
         while True:
-
-            print "Waiting..."
+            printed += 1
+            if printed == 1:
+                print("Waiting...")
 
             # Modified begin
             if file_checker(self.swap_path, self.time):
                 self.time = os.path.getmtime(self.swap_path)
                 dirt_flag = True
 
-            time.sleep(0.5)
+            time.sleep(1)
 
             # Double check and loading
             if not file_checker(self.swap_path, self.time) and dirt_flag:
 
                 # Loading
-                fbx_exchange(self.doc, self.selected_objs, self.swap_path, self.UI, 1)
+                fbx_exchange(self.doc, self.selected_objs,
+                             self.swap_path, self.UI, 1)
 
                 if self.UI['CHK_AUTO_CLOSE'][1]:
                     self.p.kill()
 
-                print "Loading... " + self.swap_path
+                if len(selected) != 0:
+                    for ob in selected:
+                        print ("Updating " + ob.GetName() + "UVs...")
+                        print (ob.GetName() + " UVs Updated!")
+
                 break
 
-            # RizomUV is closed
+			# RizomUV is closed
             if self.p.poll() is not None:
-                print "Cancel"
+                print("Update UVs Canceled")
                 break
 
             time.sleep(1)
@@ -429,7 +438,7 @@ class Options(Exporter, gui.GeDialog):
             if k in exclude_list['options']:
                 continue
 
-            if isinstance(v[1], str) or isinstance(v[1], unicode):  # TEXT
+            if isinstance(v[1], str) or isinstance(v[1], str):  # TEXT
                 if save_mode == 0:
                     self.SetString(v[0], v[1])
                 else:
@@ -911,7 +920,10 @@ def fbx_config(fbx):
     fbx[c4d.FBXEXPORT_CAMERAS] = 0
     fbx[c4d.FBXEXPORT_SPLINES] = 0
     fbx[c4d.FBXEXPORT_GLOBAL_MATRIX] = 0
-    fbx[c4d.FBXEXPORT_SDS] = 0
+    if c4d.GetC4DVersion() > 26000:
+        fbx[c4d.FBXEXPORT_SDS_CAGE] = 0
+    if c4d.GetC4DVersion() < 26000:
+        fbx[c4d.FBXEXPORT_SDS] = True
     fbx[c4d.FBXEXPORT_LIGHTS] = 0
 
     fbx[c4d.FBXEXPORT_TRACKS] = 0
@@ -956,7 +968,10 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
         if fbx is None:
             return
 
-        temp_fbx = fbx.GetData()
+        if c4d.GetC4DVersion() > 2023999:
+            temp_fbx = fbx.GetDataInstance()
+        if c4d.GetC4DVersion() < 26000:
+            temp_fbx = fbx.GetData()
         fbx_config(fbx)
 
         # [ EXPORT ] - - - - - - - - - - - - - - - - - - - - -[/]
@@ -984,7 +999,7 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
             if c4d.documents.SaveDocument(doc_temp, obj_path, c4d.SAVEDOCUMENTFLAGS_DONTADDTORECENTLIST, 1026370):
-                print "Exported to: ", obj_path
+                print("Exported to: " + obj_path)
             else:
                 gui.MessageDialog("Export failed!")
 
