@@ -910,6 +910,7 @@ def tag_cleaner(doc):
 
 
 def fbx_config(fbx):
+    optionsUI = Exporter()
     # unit_scale = c4d.UnitScaleData()
     # unit_scale.SetUnitScale(1.0, c4d.DOCUMENT_UNIT_CM)
     # todo export?
@@ -938,8 +939,17 @@ def fbx_config(fbx):
     fbx[c4d.FBXEXPORT_SDS_SUBDIVISION] = 0
     fbx[c4d.FBXEXPORT_LOD_SUFFIX] = 0
 
-    if c4d.GetC4DVersion() < 22000:
-        fbx[c4d.FBXEXPORT_TEXTURES] = 1
+    if optionsUI.ui['CHK_NOMAT'][0]:
+        if c4d.GetC4DVersion() < 22000:
+            fbx[c4d.FBXEXPORT_TEXTURES] = 1
+        else:
+            fbx[c4d.FBXEXPORT_MATERIALS] = 1
+
+    if optionsUI.ui['CHK_NOMAT'][1]:
+        if c4d.GetC4DVersion() < 22000:
+            fbx[c4d.FBXEXPORT_TEXTURES] = 0
+        else:
+            fbx[c4d.FBXEXPORT_MATERIALS] = 0
 
     fbx[c4d.FBXEXPORT_EMBED_TEXTURES] = 0
     fbx[c4d.FBXEXPORT_SUBSTANCES] = 0
@@ -970,7 +980,7 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
 
         if c4d.GetC4DVersion() > 2023999:
             temp_fbx = fbx.GetDataInstance()
-        if c4d.GetC4DVersion() < 26000:
+        else:
             temp_fbx = fbx.GetData()
         fbx_config(fbx)
 
