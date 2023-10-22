@@ -1,14 +1,8 @@
 # coding=utf-8
 # Copyright (C) 2018 Resonic.ru
+# Compatibility and functionality restoration for Cinema 4D R19 to R2024.1.0 by Eric Jeffery
 
-
-import os
-import re
-
-import json
-import subprocess
-
-import time
+import os, re, json, subprocess, time
 from threading import Thread
 
 import c4d
@@ -24,16 +18,6 @@ ZomPack({ProcessTileSelection=false, RecursionDepth=1, RootGroup="RootGroup", Sc
 edge_selection = '''for i, edge in pairs(edges) do
     ZomSelect({PrimType="Edge", Select=true, IDs={ edge}, List=true})
 end'''
-
-
-def log(data, sep=False):
-    separator = ''
-    if sep:
-        separator = ('=' * 50) + '\n'
-    file_path = os.path.join('F://', 'log.txt')
-    with open(file_path, 'a') as file_:
-        file_.write(str(data) + '\n' + separator)
-
 
 class BCommandData(c4d.plugins.CommandData):
 
@@ -63,7 +47,6 @@ class BCommandData(c4d.plugins.CommandData):
             dlg.Open(c4d.DLG_TYPE_MODAL_RESIZEABLE, xpos=-1, ypos=-1, defaultw=500, defaulth=250)
 
         return True
-
 
 class Exporter:
 
@@ -190,7 +173,6 @@ class Exporter:
         code = '{}\n{}\n{}\n{}'.format(load_string, selection, script, save_string)
         self.script_save('temp.lua', code, dialog=False)
 
-
 class Starter(Exporter):
 
     def __init__(self, script='', cmd=False):
@@ -198,13 +180,6 @@ class Starter(Exporter):
         self.rizomuv_run(script, cmd)
 
     def rizomuv_run(self, script, cmd):
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # try:
-        #     os.remove('F://log.txt')
-        # except WindowsError:
-        #     print 'log error'
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
         c4d.CallCommand(12236)  # Make Editable
 
         self.doc = c4d.documents.GetActiveDocument()
@@ -271,7 +246,6 @@ class Starter(Exporter):
         wt = WatchThread('ht', self.doc, self.selected_objs, self.object_path, self.time, self.p, self.ui)
         wt.start()
 
-
 class WatchThread(Thread):
 
     def __init__(self, name, doc, selected_objs, swap_path, t, p, UI):
@@ -315,7 +289,7 @@ class WatchThread(Thread):
 
                 if len(selected) != 0:
                     for ob in selected:
-                        print ("Updating " + ob.GetName() + "UVs...")
+                        print ("Updating " + ob.GetName() + " UVs...")
                         print (ob.GetName() + " UVs Updated!")
 
                 break
@@ -326,7 +300,6 @@ class WatchThread(Thread):
                 break
 
             time.sleep(1)
-
 
 class Options(Exporter, gui.GeDialog):
 
@@ -455,7 +428,6 @@ class Options(Exporter, gui.GeDialog):
                     self.SetInt32(v[0], v[1])
                 else:
                     v[1] = self.GetInt32(v[0])
-
 
 class ScriptsManager(Exporter, gui.GeDialog):
 
@@ -689,7 +661,6 @@ class ScriptsManager(Exporter, gui.GeDialog):
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-
 class SubScriptName(c4d.gui.GeDialog):
 
     def __init__(self):
@@ -728,7 +699,6 @@ class SubScriptName(c4d.gui.GeDialog):
 
         return True
 
-
 class SubScriptDelete(c4d.gui.GeDialog):
 
     def __init__(self):
@@ -760,7 +730,6 @@ class SubScriptDelete(c4d.gui.GeDialog):
             self.Close()
 
         return True
-
 
 def rizomuv_indexes(op, rizom_index=-1):
     # ->  [(a:0, b:3, c:4, d:1), (a:1, b:4, c:5, d:2)]
@@ -847,7 +816,6 @@ def rizomuv_indexes(op, rizom_index=-1):
 
     return rizomuv_edges
 
-
 def make_dirs(path):
     folder = os.path.dirname(path)
     script_folder = os.path.join(folder, 'scripts')
@@ -855,14 +823,12 @@ def make_dirs(path):
         os.makedirs(script_folder)
         return True
 
-
 def json_save(path, data):
     make_dirs(path)
     with open(path, 'w') as file_:
         json.dump(data, file_, ensure_ascii=False, indent=4)
         # print "Settings saved to: " + path
         return True
-
 
 def json_load(path):
     if not os.path.exists(path):
@@ -872,14 +838,12 @@ def json_load(path):
         # print "Settings load from: " + path
         return json.load(file_)
 
-
 def file_checker(obj_path, t):
     if obj_path is None:
         return
     nwt = os.path.getmtime(obj_path)
     if nwt != t:
         return True
-
 
 def get_next_object(op):
     if op is None:
@@ -890,7 +854,6 @@ def get_next_object(op):
         op = op.GetUp()
     return op.GetNext()
 
-
 def tag_search(tag_type, op):
     tag_list = []
     tags = op.GetTags()
@@ -898,7 +861,6 @@ def tag_search(tag_type, op):
         if tag and tag.GetType() == tag_type:
             tag_list.append(tag)
     return tag_list
-
 
 def tag_cleaner(doc):
     obj = doc.GetFirstObject()
@@ -908,33 +870,28 @@ def tag_cleaner(doc):
             tag.Remove()
         obj = get_next_object(obj)
 
-
 def fbx_config(fbx):
     optionsUI = Exporter()
-    # unit_scale = c4d.UnitScaleData()
-    # unit_scale.SetUnitScale(1.0, c4d.DOCUMENT_UNIT_CM)
-    # todo export?
+
     fbx[c4d.FBXEXPORT_FBX_VERSION] = 0
     fbx[c4d.FBXEXPORT_ASCII] = 0
-
     fbx[c4d.FBXEXPORT_SELECTION_ONLY] = 0
     fbx[c4d.FBXEXPORT_CAMERAS] = 0
     fbx[c4d.FBXEXPORT_SPLINES] = 0
     fbx[c4d.FBXEXPORT_GLOBAL_MATRIX] = 0
+
     if c4d.GetC4DVersion() > 26000:
         fbx[c4d.FBXEXPORT_SDS_CAGE] = 0
     if c4d.GetC4DVersion() < 26000:
         fbx[c4d.FBXEXPORT_SDS] = True
-    fbx[c4d.FBXEXPORT_LIGHTS] = 0
 
+    fbx[c4d.FBXEXPORT_LIGHTS] = 0
     fbx[c4d.FBXEXPORT_TRACKS] = 0
     fbx[c4d.FBXEXPORT_BAKE_ALL_FRAMES] = 0
     fbx[c4d.FBXEXPORT_PLA_TO_VERTEXCACHE] = 0
-
     fbx[c4d.FBXEXPORT_SAVE_NORMALS] = 1
     fbx[c4d.FBXEXPORT_SAVE_VERTEX_MAPS_AS_COLORS] = 0
     fbx[c4d.FBXEXPORT_SAVE_VERTEX_COLORS] = 0
-
     fbx[c4d.FBXEXPORT_TRIANGULATE] = 0
     fbx[c4d.FBXEXPORT_SDS_SUBDIVISION] = 0
     fbx[c4d.FBXEXPORT_LOD_SUFFIX] = 0
@@ -959,7 +916,6 @@ def fbx_config(fbx):
     fbx[c4d.FBXEXPORT_SUBSTANCES] = 0
 
     return fbx
-
 
 def fbx_exchange(doc, objects, obj_path, ui, mode=0):
     plug = plugins.FindPlugin(1026370, c4d.PLUGINTYPE_SCENESAVER)
@@ -993,8 +949,6 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
             # - - - - - - - - - - - - - - - - - - - - - - - -
 
             c4d.CallCommand(c4d.ID_NGON_REMOVE_MENU)  # Remove ngons
-            # c4d.CallCommand(14039, 14039)  # Optimize...
-            # c4d.CallCommand(12236)  # Make Editable
 
             # - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1041,7 +995,6 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
         c4d.StatusClear()
         c4d.EventAdd()
         return True
-
 
 if __name__ == '__main__':
     dir, file_name = os.path.split(__file__)
