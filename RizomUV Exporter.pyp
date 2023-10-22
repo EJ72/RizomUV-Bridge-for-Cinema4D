@@ -942,22 +942,21 @@ def fbx_config(fbx):
     if optionsUI.ui['CHK_NOMAT'][0]:
         if c4d.GetC4DVersion() < 22000:
             fbx[c4d.FBXEXPORT_TEXTURES] = 1
-        else:
+        if c4d.GetC4DVersion() > 21999 < 25999:
+            fbx[c4d.FBXEXPORT_MATERIALS] = c4d.FBXEXPORT_MATERIALS_PHONGLAMBERT
+        if c4d.GetC4DVersion() > 25999:
             fbx[c4d.FBXEXPORT_MATERIALS] = 1
 
     if optionsUI.ui['CHK_NOMAT'][1]:
         if c4d.GetC4DVersion() < 22000:
             fbx[c4d.FBXEXPORT_TEXTURES] = 0
-        else:
+        if c4d.GetC4DVersion() > 21999 < 25999:
+            fbx[c4d.FBXEXPORT_MATERIALS] = c4d.FBXEXPORT_MATERIALS_OFF
+        if c4d.GetC4DVersion() > 25999:
             fbx[c4d.FBXEXPORT_MATERIALS] = 0
 
     fbx[c4d.FBXEXPORT_EMBED_TEXTURES] = 0
     fbx[c4d.FBXEXPORT_SUBSTANCES] = 0
-
-    # if UI['CHK_NOMAT'][1]:
-    #     obj_export[c4d.OBJEXPORTOPTIONS_MATERIAL] = 0
-    # else:
-    #     obj_export[c4d.OBJEXPORTOPTIONS_MATERIAL] = c4d.OBJEXPORTOPTIONS_MATERIAL_MATERIAL
 
     return fbx
 
