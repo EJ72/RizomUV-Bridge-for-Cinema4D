@@ -25,3 +25,5 @@ Options:
 
 Extended version:
 Allows you to run scripts from Cinema4D. To create a script, just copy the commands (any commands after the ZomLoad function) from the Script Log Window to RizomUV. Also, the extended version allows you to convert and export the current selection of edges to RizomUV.
+
+NOTE: This is only compatible with Windows for now.
