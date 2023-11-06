@@ -9,7 +9,11 @@ Setup:
 
 Config Directory
 
-If you are updating the plugin, please, delete the settings.json ( the previous version's configuration file ) file from C:\Users[USER]\AppData\Roaming\MAXON\Cinema 4D RXXXXX\prefs\rizomUV.
+On Windows:
+If you are updating the plugin, please, delete the settings.json ( the previous version's configuration file ) file from C:\Users\"username"\AppData\Roaming\MAXON\Cinema 4D RXX_XXXXXXXX\prefs\RizomUV.
+
+On MacOS:
+If you are updating the plugin, please, delete the settings.json ( the previous version's configuration file ) file from /Users/"username"/Library/Preferences/MAXON/Cinema 4D RXX_XXXXXXXX/prefs/RizomUV.
 
 Usage:
 When you click on the export icon, the model is exported and the RizomUV window opens.
