@@ -101,9 +101,9 @@ class Exporter:
         self.dispatch('roaming')
         settings = json_load(self.settings_path)
 
-        #if settings is None:
-            #self.dispatch('temp')
-            #settings = json_load(self.settings_path)
+        if settings is None:
+            self.dispatch('temp')
+            settings = json_load(self.settings_path)
 
         if settings:
             self.ui = settings
@@ -389,21 +389,31 @@ class Options(Exporter, gui.GeDialog):
             # Open a file dialog for selecting "RizomUV executable"
             selected_file = c4d.storage.LoadDialog(type=c4d.FILESELECTTYPE_ANYTHING, title="RizomUV Executable", flags=c4d.FILESELECT_LOAD)
 
+
             # Check if a file was selected
             if selected_file:
 			# Check if win or mac
                 os_name = platform.system()
                 if os_name == "Windows":
                     abs_file_path = os.path.abspath(selected_file)
+				    # Update the 'TXT_U3D_PATH' value with the absolute path
                     self.ui['TXT_U3D_PATH'][1] = abs_file_path
+
+                    # Also, update the text field in the dialog
                     self.SetString(self.ui['TXT_U3D_PATH'][0], abs_file_path)
 					
-            elif os_name == "Darwin":
+            if os_name == "Darwin":
             
                 # Convert the relative path to an absolute path
                 name = selected_file.replace('/Applications/', '').replace('.app','')
+                #print(name)
                 abs_file_path = os.path.abspath(selected_file + '/Contents/MacOS/' + name)
+                #print(abs_file_path)
+
+                # Update the 'TXT_U3D_PATH' value with the absolute path
                 self.ui['TXT_U3D_PATH'][1] = abs_file_path
+
+                # Also, update the text field in the dialog
                 self.SetString(self.ui['TXT_U3D_PATH'][0], abs_file_path)
 
         if id == self.ui_['BTN_SAVE']:
