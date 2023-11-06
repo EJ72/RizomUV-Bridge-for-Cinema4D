@@ -2,7 +2,7 @@
 # Copyright (C) 2018 Resonic.ru
 # Compatibility and functionality restoration for Cinema 4D R19 to R2024.1.0 by Eric Jeffery
 
-import os, re, json, subprocess, time
+import os, re, json, subprocess, time, platform
 from threading import Thread
 
 import c4d
@@ -386,10 +386,25 @@ class Options(Exporter, gui.GeDialog):
     def Command(self, id, msg):
 
         if id == self.ui_['BTN_FIND']:
-            self.ui['TXT_U3D_PATH'][1] = c4d.storage.LoadDialog(type=c4d.FILESELECTTYPE_ANYTHING,
-                                                                title="rizomuv.exe",
-                                                                flags=c4d.FILESELECT_LOAD)
-            self.SetString(self.ui['TXT_U3D_PATH'][0], self.ui['TXT_U3D_PATH'][1])
+            # Open a file dialog for selecting "RizomUV executable"
+            selected_file = c4d.storage.LoadDialog(type=c4d.FILESELECTTYPE_ANYTHING, title="RizomUV Executable", flags=c4d.FILESELECT_LOAD)
+
+            # Check if a file was selected
+            if selected_file:
+			# Check if win or mac
+                os_name = platform.system()
+                if os_name == "Windows":
+                    abs_file_path = os.path.abspath(selected_file)
+                    self.ui['TXT_U3D_PATH'][1] = abs_file_path
+                    self.SetString(self.ui['TXT_U3D_PATH'][0], abs_file_path)
+					
+            elif os_name == "Darwin":
+            
+                # Convert the relative path to an absolute path
+                name = selected_file.replace('/Applications/', '').replace('.app','')
+                abs_file_path = os.path.abspath(selected_file + '/Contents/MacOS/' + name)
+                self.ui['TXT_U3D_PATH'][1] = abs_file_path
+                self.SetString(self.ui['TXT_U3D_PATH'][0], abs_file_path)
 
         if id == self.ui_['BTN_SAVE']:
             self.parser(1)
