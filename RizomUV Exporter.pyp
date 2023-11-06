@@ -90,8 +90,8 @@ class Exporter:
         if mode == 'roaming':
             self.plugin_folder = os.path.join(storage.GeGetC4DPath(c4d.C4D_PATH_PREFS), 'rizomUV')
 
-        if mode == 'temp':
-            self.plugin_folder = os.path.join(os.environ['Temp'], 'rizomUV')
+        #if mode == 'temp':
+            #self.plugin_folder = os.path.join(os.environ['Temp'], 'rizomUV')
 
         self.settings_path = os.path.join(self.plugin_folder, 'settings.json')
         self.object_path = os.path.join(self.plugin_folder, 'temp.fbx')
@@ -101,9 +101,9 @@ class Exporter:
         self.dispatch('roaming')
         settings = json_load(self.settings_path)
 
-        if settings is None:
-            self.dispatch('temp')
-            settings = json_load(self.settings_path)
+        #if settings is None:
+            #self.dispatch('temp')
+            #settings = json_load(self.settings_path)
 
         if settings:
             self.ui = settings
