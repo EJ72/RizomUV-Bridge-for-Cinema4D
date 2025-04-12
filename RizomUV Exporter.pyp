@@ -1091,10 +1091,13 @@ def fbx_exchange(doc, objects, obj_path, ui, mode=0):
         for data_id, data in temp_fbx:
             fbx[data_id] = data
 
-        c4d.StatusClear()
+        if c4d.GetC4DVersion() > 2024999:
+            c4d.gui.StatusClear()
+        else:
+            c4d.StatusClear()
+
         c4d.EventAdd()
         return True
-
 
 if __name__ == "__main__":
     dir, file_name = os.path.split(__file__)
